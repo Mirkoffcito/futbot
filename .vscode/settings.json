@@ -1,0 +1,9 @@
+{
+    "files.exclude": {
+        "": true,
+        ".git": true,
+        ".vscode": true,
+        "**/.git": false,
+        "**/.svn": false
+    }
+}

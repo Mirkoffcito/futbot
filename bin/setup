@@ -1,0 +1,27 @@
+#!/bin/bash
+set -e
+
+docker compose build
+
+# Install bundler if missing
+docker compose run --rm app bash -c 'gem list -i bundler || gem install bundler'
+
+# Create Gemfile if missing
+docker compose run --rm app bash -c 'test -f Gemfile || bundle init'
+
+# Add discordrb if not already in Gemfile
+docker compose run --rm app bash -c 'grep -q "gem '\''discordrb'\''" Gemfile || echo "gem '\''discordrb'\''" >> Gemfile'
+
+# Install Ruby deps
+docker compose run --rm app bundle install
+
+# Create package.json if missing
+docker compose run --rm app bash -c 'test -f package.json || npm init -y'
+
+# Optional: Install Yarn dependencies
+docker compose run --rm app yarn install || true
+docker compose run --rm app yarn add playwright@1.52.0 --dev || true
+docker compose run --rm app yarn playwright install || true
+
+echo "✅ Setup complete"
+

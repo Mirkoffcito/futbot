@@ -1,0 +1,13 @@
+volumes:
+  gems_3.4.4:
+  playwright_data:
+  
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+      - playwright_data:/root/.cache/ms-playwright/
+      - gems_3.4.4:/usr/local/bundle/
+    tty: true
+    stdin_open: true

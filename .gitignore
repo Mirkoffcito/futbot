@@ -1,0 +1,6 @@
+# Ignore byebug history
+.byebug_history
+
+# Ignore ENV
+.env
+
