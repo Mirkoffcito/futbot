@@ -41,8 +41,9 @@ class SiteScraper < BaseScraper
       prompt = ExtractionPrompt.new(content: data)
       ai_extract_data_result = prompt.chat
 
+      cleaned = ai_extract_data_result.strip[/\{.*\}|\[.*\]/m]
       log "Parsing response..."
-      ai_response = JSON.parse(ai_extract_data_result)
+      ai_response = JSON.parse(cleaned)
       # byebug
       log "Extracted data:\n#{JSON.pretty_generate(ai_response)}"
 
@@ -160,6 +161,6 @@ class SiteScraper < BaseScraper
   private
 
   def csv_urls
-    File.readlines('urls.csv', chomp: true)
+    File.readlines(File.expand_path("data/inputs/urls.csv", Dir.pwd), chomp: true)
   end
 end

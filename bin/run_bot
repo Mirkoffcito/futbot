@@ -1,2 +1,2 @@
 #!/bin/bash
-bin/run ruby init_bot.rb
+bin/run ruby config/initializers/init_bot.rb

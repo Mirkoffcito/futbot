@@ -1,2 +1,2 @@
 #!/bin/bash
-bin/run ruby bin/train.rb
+bin/run ruby scripts/train.rb

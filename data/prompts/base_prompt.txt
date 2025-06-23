@@ -35,7 +35,7 @@
    a. **Status token**  
       - `Final` or `Por penales` → `"finished"`  
       - `HH:MM` → `"scheduled"` (capture as `time`)  
-      - `ET`, `PEN`, `\d+'…` → `"live"` (capture `elapsed`/`extra`)  
+      - `ET`, `PEN`, `\d+'…` → `"live"` (capture `elapsed`/`extra`). e.g. (`23'Manchester City1-0Al Ain` -> `{"status": "live", "elapsed": "23", "extra": ""}`) or (`90+3'River Plate3-1Urawa Red Diamonds` -> {"status": "live", "elapsed": "90", "extra": "3"}) or (`90+4'Manchester City6-0Al Ain` -> {"status": "live", "elapsed": "90", "extra": "4"})
    b. **Strip** that prefix.  
    c. **Teams & scores**  
       ```regex

@@ -3,16 +3,16 @@ class BasePrompt
   include ActiveModel::Model
   include ActiveModel::Attributes
   include ActiveModel::AttributeAssignment
-
-def send_request
-  request = chat_completion_request.transform_keys(&:to_sym)
-  raise "🚨 Missing model!" unless request[:model]
-  puts "🔍 Final request: #{request.inspect}"
-
-  client.chat.completions.create(**request)
-end
+  PROMPT_PATH = File.expand_path("data/prompts/base_prompt.txt", Dir.pwd)
 
 
+  def send_request
+    request = chat_completion_request.transform_keys(&:to_sym)
+    raise "🚨 Missing model!" unless request[:model]
+    puts "🔍 Final request: #{request.inspect}"
+
+    client.chat.completions.create(**request)
+  end
 
   def chat
     send_request.choices[0].message.content
@@ -34,16 +34,16 @@ end
 
   private
 
-def build_request_body(*keys)
-  config = configuration.transform_keys(&:to_sym)
-  body = config.slice(*keys)
+  def build_request_body(*keys)
+    config = configuration.transform_keys(&:to_sym)
+    body = config.slice(*keys)
 
-  if keys.include?(:body)
-    extra = config.slice(:method, :url, :custom_id)
-    { **extra, body: body }
-  else
-    body
+    if keys.include?(:body)
+      extra = config.slice(:method, :url, :custom_id)
+      { **extra, body: body }
+    else
+      body
+    end
   end
-end
 
 end

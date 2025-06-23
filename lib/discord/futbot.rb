@@ -4,6 +4,11 @@ require 'date'
 require 'fileutils'
 
 class Futbot
+  COMPETITION_ALIASES = {
+    "mdc" => "Mundial de Clubes"
+  }.freeze
+
+  MAX_DISCORD_MESSAGE_SIZE = 2000
   CACHE_DIR = File.join(__dir__, '../../tmp')
   # set up the cache
   @@cache = {}
@@ -23,7 +28,7 @@ class Futbot
 
   def initialize(event)
     @event   = event
-    @command = parse_command(event.message.content)
+    @command, @comp_filter = parse_command(event.message.content)
     today    = local_today
 
     @date    = case @command
@@ -54,11 +59,11 @@ class Futbot
       )
       scraper.export_to_json!
 
-      # 2) load by command key (hoy/man/ayer)
-      raw  = File.read(cache_path).strip
-      data = JSON.parse(raw)  # { "hoy": [...], "man": [...], "ayer": [...] }
-
-      @matches = data.fetch("matches", [])
+      records = File.readlines(cache_path, chomp: true).map { |line| JSON.parse(line) }
+      # byebug
+      @matches = records.first.fetch("matches")
+      # byebug
+      # byebug
 
       # 3) update in-memory cache
       Futbot.cache[command] = {
@@ -66,7 +71,12 @@ class Futbot
         matches:    @matches
       }
     end
-    event.respond format_matches(@matches, title_for(command, date))
+    @matches =  if @comp_filter && COMPETITION_ALIASES.fetch(@comp_filter)
+                  @matches.select { |m| m['competition'] == COMPETITION_ALIASES.fetch(@comp_filter) }
+                else
+                  @matches
+                end
+    safe_respond(format_matches(@matches, title_for(command, date)))
   end
 
   def handle_lichi
@@ -75,15 +85,58 @@ class Futbot
 
   private
 
+
+  def safe_respond(full_message)
+    return event.respond full_message unless full_message.length > MAX_DISCORD_MESSAGE_SIZE
+    header = ""
+    body   = full_message.dup
+
+    # Extract and preserve the title (first line)
+    if body =~ /\A(\*\*[^\n]+\*\*)\n/
+      header = Regexp.last_match(1)
+      body = body.sub("#{header}\n", "")
+    end
+
+    # Split by competition sections: "\n## Something"
+    groups = body.split(/\n(?=## )/)
+
+    chunks = []
+    buffer = header.dup
+
+    groups.each do |group|
+      if (buffer + "\n" + group).length > MAX_DISCORD_MESSAGE_SIZE
+        chunks << buffer.strip
+        buffer = group
+      else
+        buffer += "\n" + group
+      end
+    end
+
+    chunks << buffer.strip unless buffer.strip.empty?
+
+    chunks.each { |chunk| event.respond(chunk) }
+  end
+
   def local_today
     Time.now.getlocal('-03:00').to_date
   end
 
   def parse_command(text)
-    case text.strip.downcase
-    when /^f!hoy/    then :hoy
-    when /^f!mañana/ then :man
-    when /^f!ayer/   then :ayer
+    raw = text.strip.downcase
+
+    if raw =~ /^fut!(hoy|ayer|mañana)\b(?:\s+(.*))?$/
+      day_str = Regexp.last_match(1)
+      comp_str = Regexp.last_match(2)&.strip
+
+      cmd = case day_str
+            when "hoy" then :hoy
+            when "mañana" then :man
+            when "ayer" then :ayer
+            end
+
+      return [cmd, comp_str]
+    else
+      return [nil, nil]
     end
   end
 

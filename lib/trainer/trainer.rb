@@ -3,19 +3,17 @@ require 'openai'
 require 'dotenv/load'
 
 class Trainer
-  TRAIN_FILE     = "./training_data.jsonl"
-  DEFAULT_MODEL  = "gpt-4.1-nano-2025-04-14"
-  DEFAULT_EPOCHS = 4
+  TRAIN_FILE     = File.expand_path("data/training_data/training_data.jsonl")
+  DEFAULT_MODEL  = "gpt-4.1-nano-2025-04-14" # Model to train (https://platform.openai.com/docs/guides/fine-tuning#fine-tuning-methods)
 
-  def initialize(client: nil, model: DEFAULT_MODEL, epochs: DEFAULT_EPOCHS)
+  def initialize
     token   = ENV.fetch("OPENAI_ACCESS_TOKEN") { raise "Missing OPENAI_ACCESS_TOKEN" }
-    @client = client || OpenAI::Client.new(api_key: token)
-    @model  = model
-    @epochs = epochs
+    @client = OpenAI::Client.new(api_key: token)
+    @model  = DEFAULT_MODEL
     validate_training_file!
   end
 
-  # 1) upload the JSONL, 2) kick off a fine-tune job
+  # 1) uploads the TRAIN FILE, 2) kick off a fine-tune job
   # returns the job hash (including "id")
   def fine_tune
     upload = @client.files.create(
@@ -43,7 +41,7 @@ class Trainer
     end
 
     final = @client.fine_tuning.jobs.retrieve(job_id)
-    if final.status == "succeeded"
+    if final.status == :succeeded
       model_name = final.fine_tuned_model
       puts "🎉 Fine-tune complete! Model: #{model_name}"
       model_name

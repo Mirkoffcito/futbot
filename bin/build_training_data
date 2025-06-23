@@ -1,0 +1,2 @@
+#!/bin/bash
+bin/run ruby scripts/build_training_data.rb
