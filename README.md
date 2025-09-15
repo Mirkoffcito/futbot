@@ -1,7 +1,13 @@
 ⚽ FutBot — AI-powered Football Discord Bot
 FutBot is a Ruby-based Discord bot that delivers real-time football match information using AI-enhanced scraping and processing. It integrates data scraping, OpenAI model training, and Discord interaction into a single streamlined project.
 
-🧠 Overview
+## Credits / Acknowledgements
+
+This project uses tools and code adapted from [edebole/de](https://github.com/edebole/de).
+
+Adapted tools and code include: `lib/scraper`, `lib/prompter`, docker setup (commit `df84897`).
+
+### 🧠 Overview
 FutBot is composed of five main components:
 
 1. 🕷 SiteScraper
@@ -38,9 +44,10 @@ Step 1 — Clone and setup:
 git clone https://github.com/Mirkoffcito/futbot.git
 cd futbot
 bin/setup
+bin/run_bot
 ```
 
-This command builds the Docker image, installs dependencies, and prepares the environment.
+This command builds the Docker image, installs dependencies, prepares the environment and finally starts the discord bot (which should have been invited to the server already).
 
 
 🔧 Configuration
